@@ -1,77 +1,175 @@
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #f4f1ea; 
     color: #333;
-}
-
-.app-container {
+    /* 取消强制的 100vh 和 hidden，让页面在小屏幕上也能整体滚动 */
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 30px;
 }
 
-h1 {
-    margin-top: 0;
-    color: #2c3e50;
+/* 顶部标题区 */
+.app-header {
+    text-align: center;
+    padding: 20px 0 10px 0;
 }
 
-.controls {
+.app-header h1 {
+    margin: 0;
+    color: #4a3f35;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.app-header p {
+    color: #7a7065;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+/* 核心三栏布局容器：主卡片 */
+.app-main {
+    flex: 1;
     display: flex;
-    gap: 15px;
+    margin: 10px 30px 30px 30px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* 保证内部元素不溢出圆角 */
+}
+
+/* ================= 左侧栏：设置区 ================= */
+.sidebar-left {
+    width: 280px;
+    min-width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #eeeeee;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.sidebar-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2c3e50;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+
+/* 控制按钮组（简易版排版） */
+.control-group {
     margin-bottom: 25px;
 }
 
 button {
-    padding: 10px 24px;
-    font-size: 16px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    background-color: #3498db;
-    color: white;
-    border: none;
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    border: 1px solid #dde1e5;
     border-radius: 8px;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
 }
 
 button:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
+    background-color: #e9ecef;
+}
+
+button.primary {
+    background-color: #2b70ff;
+    color: white;
+    border: none;
+}
+button.primary:hover {
+    background-color: #1a5deb;
 }
 
 button.active {
     background-color: #e67e22;
+    color: white;
+    border: none;
 }
 
-button.active:hover {
-    background-color: #d35400;
+/* ================= 中间栏：核心画布 ================= */
+.main-canvas {
+    flex: 1;
+    background-color: #4a90e2; /* 参考图的海洋蓝 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    /* 允许中心画布在需要时出现独立的滚动条 */
+    overflow: auto;
+    min-height: 600px;
 }
 
-.board-container {
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.eval-panel {
-    margin-top: 25px;
+/* ================= 右侧栏：分析面板 ================= */
+.sidebar-right {
+    width: 320px;
+    min-width: 320px;
+    background: #ffffff;
+    border-left: 1px solid #eeeeee;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
-    width: 600px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow-y: auto;
 }
 
-.eval-panel h3 {
-    margin-top: 0;
+/* 评分大字 */
+.score-display {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 30px;
 }
 
-.eval-good {
-    color: #27ae60;
+.score-display .score-number {
+    font-size: 64px;
+    font-weight: 800;
+    color: #e67e22; /* 暂时代替橙色 */
+    line-height: 1;
 }
 
-.eval-warning {
-    color: #e74c3c;
+.score-display .score-label {
+    font-size: 12px;
+    color: #7f8c8d;
+    letter-spacing: 1px;
+    margin-top: 5px;
+}
+
+.analysis-section {
+    margin-bottom: 20px;
+}
+
+.analysis-section h4 {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.eval-good { color: #27ae60; font-size: 13px;}
+.eval-warning { color: #e74c3c; font-size: 13px;}
+.eval-list { font-size: 13px; color: #34495e; padding-left: 20px; margin:0; }
+.eval-list li { margin-bottom: 6px; }
+
+/* ================= SVG 元素美化 ================= */
+.hexagon-poly {
+    /* 移除描边，让板块更紧凑 */
+    stroke: #ffffff;
+    stroke-width: 1.5;
+    /* 给六边形增加一点微小的过渡动画 */
+    transition: fill 0.2s;
+}
+
+.token-bg {
+    fill: #ffffff;
+    /* 用滤镜模拟轻微的实体阴影 */
+    filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.3));
 }
