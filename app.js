@@ -110,36 +110,78 @@ function isBoardValid(board, constraints) {
     return true;
 }
 
-function generateValidBoard(constraints) {
+// 辅助函数：判断一个坐标是否在边缘
+function isEdgeCoord(coord) {
+    return Math.abs(coord.q) === 2 || Math.abs(coord.r) === 2 || Math.abs(-coord.q - coord.r) === 2;
+}
+
+function generateValidBoard(constraints, desertPosOption) {
     let valid = false;
     let boardMap = [];
     let attempts = 0;
-    const MAX_ATTEMPTS = 5000; // 防止浏览器卡死
+    const MAX_ATTEMPTS = 5000; 
     
     while (!valid && attempts < MAX_ATTEMPTS) {
-        let tiles = shuffle(STANDARD_TILES);
+        // 先把非沙漠的地形拿出来洗牌 (18张)
+        let normalTiles = shuffle(STANDARD_TILES.filter(t => t.id !== 'desert'));
         let numbers = shuffle(STANDARD_NUMBERS);
         boardMap = [];
         let numIndex = 0;
+        let normalTileIndex = 0;
+        
+        // 预设沙漠应该放置的坐标 (如果不是 random)
+        let targetDesertCoord = null;
+        if (desertPosOption === 'center') {
+            targetDesertCoord = { q: 0, r: 0 };
+        } else if (desertPosOption === 'edge') {
+            const edges = HEX_COORDS.filter(isEdgeCoord);
+            targetDesertCoord = edges[Math.floor(Math.random() * edges.length)];
+        }
         
         for (let i = 0; i < HEX_COORDS.length; i++) {
             const coord = HEX_COORDS[i];
-            const resource = tiles[i];
-            let number = null;
-            if (resource.id !== 'desert') {
-                number = numbers[numIndex];
-                numIndex++;
+            let resource, number;
+
+            // 决定这个格子放什么
+            if (desertPosOption !== 'random' && targetDesertCoord && coord.q === targetDesertCoord.q && coord.r === targetDesertCoord.r) {
+                // 如果用户指定了特定位置，且当前轮到了这个坐标，强制塞入沙漠
+                resource = RESOURCES.DESERT;
+                number = null;
+            } else if (desertPosOption === 'random' && normalTileIndex === normalTiles.length) {
+                // 原有的纯随机逻辑兼容
+                resource = RESOURCES.DESERT;
+                number = null;
+            } else if (desertPosOption === 'random') {
+                // 纯随机时的普通牌处理，为了完美随机，需要把沙漠混入 normalTiles。
+                // 为了逻辑简单，这里稍微调整：我们在 random 时直接复用原始纯洗牌逻辑
+                // （这行代码只有在 random 且洗到最后一张还不是沙漠时触发，实际不会执行，为了结构完整）
+            } else {
+                resource = normalTiles[normalTileIndex++];
+                number = numbers[numIndex++];
             }
+            
             boardMap.push({ ...coord, resource, number, id: i });
+        }
+
+        // 如果是 random 模式，我们直接把之前的暴力洗牌拿过来用最保险
+        if (desertPosOption === 'random') {
+             let allTiles = shuffle(STANDARD_TILES);
+             let allNums = shuffle(STANDARD_NUMBERS);
+             boardMap = [];
+             let nIdx = 0;
+             for (let i = 0; i < HEX_COORDS.length; i++) {
+                 let r = allTiles[i];
+                 let n = r.id === 'desert' ? null : allNums[nIdx++];
+                 boardMap.push({ ...HEX_COORDS[i], resource: r, number: n, id: i });
+             }
         }
         
         valid = isBoardValid(boardMap, constraints);
         attempts++;
     }
     
-    // 如果达到了最大尝试次数仍然找不到解，返回最后一次失败的盘面并打一个标记
     if (!valid) {
-        console.warn("Generation timed out. Too many strict constraints.");
+        console.warn("Generation timed out.");
         boardMap.generationFailed = true; 
     }
     
@@ -215,6 +257,9 @@ const App = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [generationFailed, setGenerationFailed] = useState(false);
     
+    // 沙漠位置状态管理 (center, edge, random)
+    const [desertPos, setDesertPos] = useState('random');
+
     // 约束条件状态管理
     const [constraints, setConstraints] = useState({
         noAdjacentSameNumber: false,
@@ -241,7 +286,7 @@ const App = () => {
     }, []);
 
     const handleGenerate = () => {
-        const newBoard = generateValidBoard(constraints);
+        const newBoard = generateValidBoard(constraints, desertPos);
         setBoard(newBoard);
         setGenerationFailed(newBoard.generationFailed || false);
         setIsEditMode(false);
@@ -330,6 +375,25 @@ const App = () => {
             renderToggle('noAdjacentSameResource', 'No adjacent same resource'),
             renderToggle('noAdjacent68', 'No adjacent 6 and 8'),
             renderToggle('noAdjacent2And12', 'No adjacent 2 and 12')
+        ]),
+        
+        e('div', {key: 't3', className: 'sidebar-title'}, 'DESERT POSITION / 沙漠位置'),
+        e('div', {key: 'g3', className: 'segmented-control'}, [
+            e('button', {
+                key: 'center', 
+                className: `segment-btn ${desertPos === 'center' ? 'active' : ''}`,
+                onClick: () => setDesertPos('center')
+            }, 'Center'),
+            e('button', {
+                key: 'edge', 
+                className: `segment-btn ${desertPos === 'edge' ? 'active' : ''}`,
+                onClick: () => setDesertPos('edge')
+            }, 'Edge'),
+            e('button', {
+                key: 'random', 
+                className: `segment-btn ${desertPos === 'random' ? 'active' : ''}`,
+                onClick: () => setDesertPos('random')
+            }, 'Random')
         ])
     ]);
 

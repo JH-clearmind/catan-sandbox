@@ -97,6 +97,39 @@ button.active {
     border: none;
 }
 
+/* 胶囊按钮组（Segmented Control）样式 */
+.segmented-control {
+    display: flex;
+    background-color: #f0f2f5;
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 25px;
+    border: 1px solid #dde1e5;
+}
+
+.segment-btn {
+    flex: 1;
+    margin-bottom: 0;
+    border: none;
+    background: transparent;
+    color: #7f8c8d;
+    font-size: 13px;
+    padding: 8px 0;
+    box-shadow: none;
+    border-radius: 6px;
+}
+
+.segment-btn:hover {
+    background: rgba(0,0,0,0.05);
+    transform: none;
+}
+
+.segment-btn.active {
+    background: #2b70ff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 /* ================= 中间栏：核心画布 ================= */
 .main-canvas {
     flex: 1;
